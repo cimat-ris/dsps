@@ -24,11 +24,11 @@ def plot_graphs(history, metric):
   plt.legend([metric, 'val_'+metric])
 
 show      = True
-training  = False
+training  = True
 #path_files= './connectome_test/'
 path_files= '/home/jbhayet/opt/repositories/devel/dsps/data/151425/'
 path_files= '/home/jbhayet/opt/repositories/devel/dsps/data/155938/'
-path_files= '/home/jbhayet/Desktop/data/001/results_res/151425/'
+path_files= '/home/jbhayet/Desktop/data/001/results_res/'
 fNameRef  = 't1.nii.gz'
 fNameRef  = 'autoFA_L_exclude_interp.nii.gz'
 fNameRef  = 'autoCC_MID_target_01.nii.gz'
@@ -36,11 +36,14 @@ fNameRef  = 'autoCC_MID_target_01.nii.gz'
 #classes = ['CG_L','CG_R','CGH_L','CGH_R','CGR_L','CGR_R','CST_L','CST_R','FA_L','FA_R','FMA','FMI']
 #classes = ['IFOF_R','ILF_L','ILF_R','MLF_L','MLF_R','OR_R','SLF_L','SLF_R','TAPETUM','UF_L','UF_R','VOF_L']
 classes = ['AC','AF_L','AF_R','CGFP_L','CGFP_R','CGH_L','CGH_R','CG_L','CG_R','CGR_R','FA_L','FA_R','FMA','FX_R','IFOF_L','IFOF_R','ILF_L','MLF_L','OR_L','SLF_L','UF_L','UF_R','VOF_L','VOF_R']
+subjects   = ['151425','152831','154936','158843','172029','177645','179245','151728','154229','155938','175237','178142','157942','170631','177241','178950']
+
 nclasses= len(classes)
 samples = 3
 emb_size= 32
 rnn_size= 32
 int_size= 32
+s_batch = 128
 # Our small recurrent model
 class simpleModel(tf.keras.Model):
     def __init__(self):
@@ -69,28 +72,34 @@ checkpoint       = tf.train.Checkpoint(optimizer=model.optimizer,model=model)
 
 all_trajs  = []
 all_labels = []
-# Reads the .tck files from each specified class
-for i,c in enumerate(classes):
-    # Load tractogram
-    #filename   = path_files+'auto'+c+'.tck'
-    filename   = path_files+c+'_20p.tck'
-    print('Reading file:',filename)
-    #tractogram = load_tractogram(filename, path_files+fNameRef, bbox_valid_check=False)
-    tractogram = load_tractogram(filename, './connectome_test/t1.nii.gz', bbox_valid_check=False)
-    # Get all the streamlines
-    STs      = tractogram.streamlines
-    print('Extracted:',len(STs))
-    scaledSTs= set_number_of_points(STs,20)
-    all_trajs.extend(scaledSTs)
-    all_labels.extend(len(scaledSTs)*[i])
-print('Total number of streamlines:',len(all_trajs))
+idx        = 0
+for k,subject in enumerate(subjects):
+    # Reads the .tck files from each specified class
+    for i,c in enumerate(classes):
+        # Load tractogram
+        #filename   = path_files+'auto'+c+'.tck'
+        filename   = path_files+subject+'/'+c+'_20p.tck'
+        if not os.path.isfile(filename):
+            continue
+        print('[INFO] Reading file:',filename)
+        #tractogram = load_tractogram(filename, path_files+fNameRef, bbox_valid_check=False)
+        tractogram = load_tractogram(filename, './connectome_test/t1.nii.gz', bbox_valid_check=False)
+        # Get all the streamlines
+        STs      = tractogram.streamlines
+        if k==0:
+            idx=idx+len(STs)
+        scaledSTs= set_number_of_points(STs,20)
+        all_trajs.extend(scaledSTs)
+        all_labels.extend(len(scaledSTs)*[i])
+print('[INFO] Used for testing: ',idx)
+print('[INFO] Total number of streamlines:',len(all_trajs))
 dataset = tf.data.Dataset.from_tensor_slices((all_trajs,all_labels))
-dataset       = dataset.shuffle(50000, reshuffle_each_iteration=False)
-dataset       = dataset.batch(32)
-# 3 batches for validation (we dont have that many here)
-val_dataset   = dataset.take(20)
+dataset       = dataset.shuffle(600000, reshuffle_each_iteration=False)
+dataset       = dataset.batch(s_batch)
+# First subject for validation
+val_dataset   = dataset.take(idx//s_batch)
 # The rest is for training
-train_dataset = dataset.skip(20)
+train_dataset = dataset.skip(idx//s_batch)
 
 if training:
     # Training
@@ -114,15 +123,9 @@ test_loss, test_acc = model.evaluate(val_dataset)
 model.summary()
 
 y_true = np.concatenate([y for x, y in val_dataset], axis=0)
-print(y_true.shape)
 x_true = np.concatenate([x for x, y in val_dataset], axis=0)
-print(x_true.shape)
 o_pred = model.predict(x_true)
-print(o_pred.shape)
-print(o_pred[0])
-print(y_true[0])
 y_pred = np.argmax(o_pred, axis=1)
-print(y_pred.shape)
 confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
 plt.figure(figsize=(10, 8))
 sns.heatmap(confusion_mtx, xticklabels=classes, yticklabels=classes,
