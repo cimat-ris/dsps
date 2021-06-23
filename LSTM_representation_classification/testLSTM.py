@@ -35,8 +35,8 @@ fNameRef  = 'autoCC_MID_target_01.nii.gz'
 
 #classes = ['CG_L','CG_R','CGH_L','CGH_R','CGR_L','CGR_R','CST_L','CST_R','FA_L','FA_R','FMA','FMI']
 #classes = ['IFOF_R','ILF_L','ILF_R','MLF_L','MLF_R','OR_R','SLF_L','SLF_R','TAPETUM','UF_L','UF_R','VOF_L']
-classes = ['AC','AF_L','AF_R','CGFP_L','CGFP_R','CGH_L','CGH_R','CG_L','CG_R','CGR_R','FA_L','FA_R','FMA','FX_R','IFOF_L','IFOF_R','ILF_L','MLF_L','OR_L','SLF_L','UF_L','UF_R','VOF_L','VOF_R']
-subjects   = ['151425','152831','154936','158843','172029','177645','179245','151728','154229','155938','175237','178142','157942','170631','177241','178950']
+classes = ['AC','AF_L','AF_R','CGFP_L','CGFP_R','CGH_L','CGH_R','CG_L','CG_R','CGR_R','FA_L','FA_R','FMA','FX_R','FX_L','IFOF_L','IFOF_R','ILF_L','MLF_L','OR_L','SLF_L','UF_L','UF_R','VOF_L','VOF_R','CC_MID','CST','FMI','TAPETUM']
+subjects   = ['152831','151425','154936','158843','172029','177645','179245','151728','154229','155938','175237','178142','157942','170631','177241','178950']
 
 nclasses= len(classes)
 samples = 3
