@@ -6,7 +6,6 @@ Created on Tue Jun 22 3:02 2021
 @author: Armando Cruz (Gory)
 """
 
-import sys
 import argparse
 import numpy as np
 from dipy.io.streamline import load_tractogram
@@ -16,15 +15,15 @@ path_raw_data = './HCP_tracto/'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-
-    parser.add_argument('--subject', default='s1', help='Name of the subject. (default: s1)')
-    parser.add_argument('--tract', '--tractogram', default='FMI.tck', help='Tractogram file, .tck extension. (default: FMI.tck)')
+    # parser.add_argument('--subject', default='s1', help='Name of the subject. (default: s1)')
+    parser.add_argument('tract', type=str, help='Tractogram file, .tck extension.')
     parser.add_argument('--ref', '--reference', default='t1.nii.gz', help='Reference file, Nifti or Trk file. (default: t1.nii.gz)')
-
+    parser.add_argument('--nlines', default='100', help='Reference file, Nifti or Trk file. (default: t1.nii.gz)')
     args = parser.parse_args()
     
-    tractogram = load_tractogram(path_raw_data+args.subject+'/'+args.tract, path_raw_data+args.subject+'/'+args.ref, bbox_valid_check=False)
-    streamlines = tractogram.streamlines
+    print(path_raw_data+args.tract)
+    tractogram = load_tractogram(path_raw_data+args.tract, path_raw_data+args.ref, bbox_valid_check=False)
+    streamlines = tractogram.streamlines[:args.n_lines]
     first_streamline = streamlines[0]
 
     print('Number of streamlines')
