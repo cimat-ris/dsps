@@ -102,6 +102,8 @@ def model_raw(model, subjects, classes, test_idx, path_files, fNameRef, checkpoi
         plt.ylabel('True label')
         plt.show()
 
+    return preds
+
 
 #------------------------------------------- Main -------------------------------------------
 
