@@ -8,7 +8,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from dipy.io.streamline import load_tractogram
 from dipy.align.streamlinear import set_number_of_points
-from dipy.viz import window, actor, colormap as cmap
+from dipy.viz import window, actor, ui, colormap as cmap
 import numpy as np
 import time
 import os
@@ -24,7 +24,7 @@ def plot_graphs(history, metric):
   plt.legend([metric, 'val_'+metric])
 
 show      = True
-training  = True
+training  = False
 #path_files= './connectome_test/'
 path_files= '/home/jbhayet/opt/repositories/devel/dsps/data/151425/'
 path_files= '/home/jbhayet/opt/repositories/devel/dsps/data/155938/'
@@ -44,6 +44,7 @@ emb_size= 32
 rnn_size= 32
 int_size= 32
 s_batch = 128
+
 # Our small recurrent model
 class simpleModel(tf.keras.Model):
     def __init__(self):
@@ -74,6 +75,9 @@ all_trajs  = []
 all_labels = []
 idx        = 0
 for k,subject in enumerate(subjects):
+    if training==False:
+        if k>0:
+            break
     # Reads the .tck files from each specified class
     for i,c in enumerate(classes):
         # Load tractogram
@@ -116,9 +120,11 @@ if training:
     plt.ylim(0, None)
     plt.show()
 else:
+    # To avoid training, we can just load the parameters we saved in the previous session
     print("[INF] Restoring last model")
     status = checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
+# Evaluate test individual
 test_loss, test_acc = model.evaluate(val_dataset)
 model.summary()
 
@@ -126,6 +132,8 @@ y_true = np.concatenate([y for x, y in val_dataset], axis=0)
 x_true = np.concatenate([x for x, y in val_dataset], axis=0)
 o_pred = model.predict(x_true)
 y_pred = np.argmax(o_pred, axis=1)
+
+# Confusion matrix
 confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
 plt.figure(figsize=(10, 8))
 sns.heatmap(confusion_mtx, xticklabels=classes, yticklabels=classes,
@@ -133,3 +141,22 @@ sns.heatmap(confusion_mtx, xticklabels=classes, yticklabels=classes,
 plt.xlabel('Prediction')
 plt.ylabel('True label')
 plt.show()
+
+# Some visualization of the baddies
+baddies   = (y_true!=y_pred)
+baddies_x = x_true[baddies]
+baddies_id= y_true[baddies]
+
+# Add display objects to canvas
+scene = window.Scene()
+color = cmap.line_colors(baddies_x)
+streamlines_actor = actor.line(baddies_x,cmap.line_colors(baddies_x),linewidth=3, fake_tube=True)
+scene.add(streamlines_actor)
+
+#for i,c in enumerate(classes):
+#    color = cmap.line_colors(STs)
+#    if baddies_x[baddies_id==i].shape[0]>0:
+#        streamlines_actor = actor.line(baddies_x[baddies_id==i],(0.5, 0.5, 0),linewidth=3, fake_tube=True)
+#        scene.add(streamlines_actor)
+
+window.show(scene)
