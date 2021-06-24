@@ -52,7 +52,7 @@ clusters_labels = {
 }
 
 raw_data_path = './HCP_tracto/'
-out_data_path = './training/'
+training_data_path = './training/'
 
 errors_2 = np.array([ [x1, x2, x3, x4, x5, x6] for x1 in range(2) for x2 in range(2) for x3 in range(2)
                                     for x4 in range(2) for x5 in range(2) for x6 in range(2)], dtype=np.int32)
@@ -201,12 +201,12 @@ if __name__ == '__main__':
     for i in range(0,len(full_streamlines),streams_in_file):
         x_training = full_streamlines[i:i+streams_in_file]
         y_training = y[i:i+streams_in_file]
-        with open(out_data_path+args.npoints+'/'+args.subject+'_'+str(i//streams_in_file)+'.npy', 'w+b') as f:
+        with open(training_data_path+args.npoints+'/'+args.subject+'_'+str(i//streams_in_file)+'.npy', 'w+b') as f:
             np.save(f, x_training)
             np.save(f, y_training)
     x_notfoun = np.array(np.array(not_found))
     y_notfoun = np.array(np.array(not_found_labels))
-    with open(out_data_path+args.npoints+'/'+args.subject+'_notfound.npy', 'w+b') as f:
+    with open(training_data_path+args.npoints+'/'+args.subject+'_notfound.npy', 'w+b') as f:
         np.save(f, x_notfoun)
         np.save(f, y_notfoun)
     toc = time.time()
