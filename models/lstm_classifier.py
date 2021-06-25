@@ -4,7 +4,6 @@ from dipy.io.streamline import load_tractogram,save_tractogram
 from dipy.align.streamlinear import set_number_of_points
 import matplotlib.pyplot as plt
 
-samples = 3
 emb_size= 32
 rnn_size= 32
 int_size= 32
@@ -47,9 +46,9 @@ class lstmClassifier(tf.keras.Model):
         if retrain==True:
             train_trajs  = []
             train_labels = []
+            val_trajs  = []
+            val_labels = []
             for k,subject in enumerate(subjects):
-                if subject==test_subject:
-                    continue
                 # Reads the .tck files from each specified class
                 for i,c in enumerate(self.classes):
                     # Load tractogram
@@ -63,17 +62,24 @@ class lstmClassifier(tf.keras.Model):
                     # Get all the streamlines
                     STs      = tractogram.streamlines
                     scaledSTs= set_number_of_points(STs,20)
-                    train_trajs.extend(scaledSTs)
-                    train_labels.extend(len(scaledSTs)*[i])
+                    if subject==test_subject:
+                        val_trajs.extend(scaledSTs)
+                        val_labels.extend(len(scaledSTs)*[i])
+                    else:
+                        train_trajs.extend(scaledSTs)
+                        train_labels.extend(len(scaledSTs)*[i])
 
             print('[INFO] Used for testing: ',test_subject)
             print('[INFO] Total number of streamlines for training:',len(train_trajs))
+            print('[INFO] Total number of streamlines for validation:',len(val_trajs))
             train_dataset = tf.data.Dataset.from_tensor_slices((train_trajs,train_labels))
             train_dataset       = train_dataset.shuffle(600000, reshuffle_each_iteration=False)
             train_dataset       = train_dataset.batch(s_batch)
+            val_dataset = tf.data.Dataset.from_tensor_slices((val_trajs,val_labels))
+            val_dataset       = val_dataset.batch(s_batch)
 
             # Training
-            history = self.fit(train_dataset, epochs=25)
+            history = self.fit(train_dataset, epochs=35, validation_data=val_dataset)
             checkpoint.save(file_prefix = checkpoint_prefix)
             # Plots
             plt.figure(figsize=(16, 8))

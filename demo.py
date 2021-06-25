@@ -82,6 +82,7 @@ if __name__ == '__main__':
         classifier  = None
         predictions = None
 
+    print("[INFO] Accuracy:", len(gt_labels[gt_labels==predictions])/len(gt_streamlines)*100.0)
 
     ###
     ### Confusion matrix
