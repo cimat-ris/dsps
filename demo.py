@@ -30,6 +30,7 @@ if __name__ == '__main__':
     parser.add_argument('--ref', '--reference', default='fa.nii.gz', help='Reference file, Nifti or Trk file. (default: fa.nii.gz)')
     parser.add_argument('--confusion_mtx', action='store_true', help='Display the confusion matrix')
     parser.add_argument('--view_mis', action='store_true', help='Visualize the misclassified')
+    parser.add_argument('--train', action='store_true', help='Train the selected network')
     args = parser.parse_args()
 
     ###
@@ -72,7 +73,7 @@ if __name__ == '__main__':
         predictions = None
     elif args.classifier == 'LSTM':
         classifier = lstmClassifier(clusters_names)
-        classifier.train(subjects,args.subject,raw_data_path,reload_weights=True)
+        classifier.train(subjects,args.subject,raw_data_path,retrain=args.train)
         predictions = np.argmax(classifier(gt_streamlines), axis=1)
     elif args.classifier == 'transformer':
         classifier  = None

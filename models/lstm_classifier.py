@@ -35,7 +35,7 @@ class lstmClassifier(tf.keras.Model):
         x = self.final(x)
         return x
 
-    def train(self,subjects,test_subject,path_files,reload_weights=False):
+    def train(self,subjects,test_subject,path_files,retrain=True):
         self.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
                       optimizer=tf.keras.optimizers.Adam(1e-4),
                       metrics=['accuracy'])
@@ -44,7 +44,7 @@ class lstmClassifier(tf.keras.Model):
         checkpoint_prefix= os.path.join(checkpoint_dir,"ckpt")
         checkpoint       = tf.train.Checkpoint(optimizer=self.optimizer,model=self)
 
-        if reload_weights==False:
+        if retrain==True:
             train_trajs  = []
             train_labels = []
             for k,subject in enumerate(subjects):
