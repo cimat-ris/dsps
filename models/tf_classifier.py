@@ -21,21 +21,13 @@ def plot_graphs(history, metric):
   plt.legend([metric, 'val_'+metric])
 
 # Our small recurrent model
-class tfClassifier(tf.keras.Model):
+class tfClassifier(Transformer):
     def __init__(self,classes):
-        super(tfClassifier, self).__init__(name="tfClassifier")
-        self = Transformer(d_model, num_layers, num_heads, n_class, dff, rate=0.1)
-
-    def call(self, inputs):
-        x = self.embedding(inputs)
-        x = self.lstm(x)
-        x = self.dense(x)
-        x = self.final(x)
-        return x
+        super(tfClassifier, self).__init__(d_model, num_layers, num_heads, len(classes), dff, rate=0.1)
+        self.classes = classes
 
     def train(self,subjects,test_subject,path_files,retrain=True):
         self.compile(loss="categorical_crossentropy", optimizer="adam", metrics=['accuracy'])
-
         # Checkpoints
         checkpoint_dir   = './checkpoints-TF'+'-'+test_subject
         checkpoint_prefix= os.path.join(checkpoint_dir,"ckpt")
@@ -71,14 +63,13 @@ class tfClassifier(tf.keras.Model):
             print('[INFO] Total number of streamlines for training:',len(train_trajs))
             print('[INFO] Total number of streamlines for validation:',len(val_trajs))
             train_trajs = np.array(train_trajs)
-            test_trajs = np.array(test_trajs)
-
-            train_labels = np.array(train_labels)
-            aux = np.zeros([train_labels.shape[0],n_class])
+            val_trajs   = np.array(val_trajs)
+            train_labels= np.array(train_labels)
+            aux = np.zeros([train_labels.shape[0],len(self.classes)])
             for i in range(train_labels.shape[0]): aux[i,train_labels[i]] = 1
             train_labels = aux
             # Training
-            history = model.fit(train_trajs, train_labels, batch_size=32, epochs=25, validation_split=0.3)
+            history = self.fit(train_trajs, train_labels, batch_size=32, epochs=25, validation_split=0.3)
             checkpoint.save(file_prefix = checkpoint_prefix)
             # Plots
             plt.figure(figsize=(16, 8))
