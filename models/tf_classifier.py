@@ -39,6 +39,7 @@ class tfClassifier(Transformer):
             val_trajs  = []
             val_labels = []
             for k,subject in enumerate(subjects):
+                print('[INFO] Reading subject:',subject)                
                 # Reads the .tck files from each specified class
                 for i,c in enumerate(self.classes):
                     # Load tractogram

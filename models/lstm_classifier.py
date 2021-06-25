@@ -23,13 +23,17 @@ class lstmClassifier(tf.keras.Model):
         nclasses      = len(classes)
         self.embedding= tf.keras.layers.Dense(emb_size)
         self.lstm     = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(rnn_size))
+        self.dropout1 = tf.keras.layers.Dropout(0.1)
+        self.dropout2 = tf.keras.layers.Dropout(0.1)
         self.dense    = tf.keras.layers.Dense(int_size, activation='relu')
         self.final    = tf.keras.layers.Dense(nclasses)
         self.classes  = classes
 
     def call(self, inputs):
         x = self.embedding(inputs)
+        x = self.dropout1(x)
         x = self.lstm(x)
+        x = self.dropout2(x)
         x = self.dense(x)
         x = self.final(x)
         return x
@@ -49,6 +53,7 @@ class lstmClassifier(tf.keras.Model):
             val_trajs  = []
             val_labels = []
             for k,subject in enumerate(subjects):
+                print('[INFO] Reading subject:',subject)                
                 # Reads the .tck files from each specified class
                 for i,c in enumerate(self.classes):
                     # Load tractogram
@@ -79,7 +84,7 @@ class lstmClassifier(tf.keras.Model):
             val_dataset       = val_dataset.batch(s_batch)
 
             # Training
-            history = self.fit(train_dataset, epochs=35, validation_data=val_dataset)
+            history = self.fit(train_dataset, epochs=25, validation_data=val_dataset)
             checkpoint.save(file_prefix = checkpoint_prefix)
             # Plots
             plt.figure(figsize=(16, 8))
