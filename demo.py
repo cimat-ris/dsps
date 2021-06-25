@@ -13,6 +13,7 @@ from dipy.viz import window, actor, ui, colormap as cmap
 from dipy.viz.app import distinguishable_colormap
 from models.lstm_classifier import lstmClassifier
 from models.tf_classifier import tfClassifier
+from models.cnn_classifier import cnnClassifier
 
 raw_data_path = './data/HCP_tracto/'
 result_data_path = './data/results/'
@@ -70,8 +71,9 @@ if __name__ == '__main__':
         classifier  = lambda x: np.random.randint(low=-1, high=len(clusters_names)-1, size=x.shape[0])
         predictions = classifier(gt_streamlines)
     elif args.classifier == 'CNN':
-        classifier = None
-        predictions = None
+        classifier = cnnClassifier(clusters_names)
+        classifier.train(subjects,args.subject,raw_data_path,retrain=args.train)
+        predictions =  np.argmax(classifier(gt_streamlines), axis=1)
     elif args.classifier == 'LSTM':
         classifier = lstmClassifier(clusters_names)
         classifier.train(subjects,args.subject,raw_data_path,retrain=args.train)
