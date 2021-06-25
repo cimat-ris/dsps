@@ -93,6 +93,10 @@ if __name__ == '__main__':
     ###
     if args.confusion_mtx:
         confusion_mtx = tf.math.confusion_matrix(gt_labels, predictions)
+        confusion_mtx = confusion_mtx/(1+tf.math.reduce_sum(confusion_mtx, axis = 1))*10000
+        confusion_mtx = tf.cast(confusion_mtx, tf.int32)
+        confusion_mtx = confusion_mtx/100
+
         plt.figure(figsize=(10, 8))
         sns.heatmap(confusion_mtx, xticklabels=clusters_names, yticklabels=clusters_names,annot=True, fmt='g')
         plt.xlabel('Prediction')
